@@ -52,20 +52,22 @@ class Descendente:
 	def printFirst(self,):
 
 		for key,value in self.firsts.iteritems():
-			
+			first_srt = 'First(%s)' % key
+
 			if len(value) > 1:
-				print 'First(%s) -> {%s}' % (key,",".join(value))
+				print '%s -> {%s}' % (first_srt.ljust(12),",".join(value))
 			else:
-				print 'First(%s) -> {%s}' % (key,value[0])
+				print '%s -> {%s}' % (first_srt.ljust(12),value[0])
 
 	def printFollow(self):
 
 		for key,value in self.follows.iteritems():
-			
+			follow_srt = 'Follow(%s)' % key
+
 			if len(value) > 1:
-				print 'Follow(%s) -> {%s}' % (key,",".join(value))
+				print '%s -> {%s}' % (follow_srt.ljust(12),",".join(value))
 			else:
-				print 'Follow(%s) -> {%s}' % (key,value[0])
+				print '%s -> {%s}' % (follow_srt.ljust(12),value[0])
 
 	def first(self,NT):
 	
@@ -263,18 +265,6 @@ class Descendente:
 		print '%s %s %s' % (self.__SYMBOL_MARK.ljust(25),self.__SYMBOL_MARK.ljust(10),'ACCEPTED'.ljust(15))
 
 
-
-
-
-
-		
-
-
-
-
-
-
-
 if "__main__":
 	gramatica	 = {'E':['TE"'],'E"':['+TE"','empty'],
 						'T':['FT"'],'T"':['*FT"','empty'],
@@ -298,23 +288,13 @@ if "__main__":
 			'F"':['*F"','empty'],
 			'P':['(E)','a','b','ep']}
 
-#	First(E)  = First(T) = First(F) = First(P) = (,a,b,ep
-#	First(E") = +,empty
-#	First(T") = (,a,b,ep,empty
-#	First(F") = *,empty
-
-#	Follow(E) = Follow(E") = ),$
-#	Follow(T) = Follow(T") = +,),$
-#	Follow(F) = Follow(F") = (,a,b,ep,+,),$
-#	Follow(P) = (,a,b,ep,+,),*,$
-
 
 	D = Descendente(g4,'E','empty')
 	D.computFollow()
 	D.printFirst()
 	D.printFollow()
 	D.buildTable()
-	#D.printTable()
+	D.printTable()
 	D.recognize(['a','b','*'])
 
 
