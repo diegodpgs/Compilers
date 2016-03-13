@@ -9,14 +9,15 @@ class Descendente:
 		self.gramatica = gramatica
 		self.__EMPTY__ = empty
 		self.__INITIAL__ = initial
+		self.__SYMBOL_MARK = '$'
 		self.follows = {}
 		self.firsts = {}
 		self.NTs = gramatica.keys()
 		self.terms = self.getTerms()
-		
 		self.terminals = set(self.terms) - set(self.NTs)
 		self.table = dict([(keyNT,dict([(key,'') for key in list(self.terminals)])) for keyNT in self.NTs])
 		self.trackfollow = []
+
 
 	def setGramatica(self,gramatica,initial):
 		self.gramatica = gramatica
@@ -140,7 +141,7 @@ class Descendente:
 		F = []
 
 		if NT == self.__INITIAL__:
-			F = ['$']
+			F = [self.__SYMBOL_MARK]
 
 		productions =  self.getFollowProductions(NT)
 		
@@ -208,8 +209,8 @@ class Descendente:
 				
 				if self.__EMPTY__ in first_alfa:
 					for b in self.follows[A]:
-						if '$' in self.follows[A]:
-							self.table[A]['$'] = value
+						if self.__SYMBOL_MARK in self.follows[A]:
+							self.table[A][self.__SYMBOL_MARK] = value
 						
 						self.table[A][b] = value
 
@@ -220,7 +221,51 @@ class Descendente:
 			for t,values in Ts.iteritems():
 				if len(values) != 0:
 					print t,'   %s' % (values.rjust(12))
-			
+	
+	def recognize(self,input_source):
+		stack = [self.__INITIAL__,self.__SYMBOL_MARK]
+		input_source.append(self.__SYMBOL_MARK)
+		action = []
+
+		NT_analised = stack[0]
+		terminal_input_analised = input_source[0]
+		print '%s %s %s' % ('Stack'.ljust(25),'Input'.ljust(10),'Action'.ljust(15))
+		
+		while NT_analised != self.__SYMBOL_MARK:
+			print '%s %s' % ("".join(stack).ljust(25),"".join(input_source).ljust(10)),
+
+			if NT_analised == terminal_input_analised:
+				print ' %s' % ('terminal'.ljust(15))
+				del input_source[0]
+				del stack[0]
+
+			elif NT_analised not in self.NTs:
+				raise Exception('ERROR: symbol not recognized')
+
+			elif self.table[NT_analised][terminal_input_analised] == 'ERROR':
+				raise Exception('ERROR: symbol not recognized')
+
+			elif NT_analised in self.NTs:
+				#print '\nT:%s   NT:%s' % (terminal_input_analised,NT_analised)
+				#print 'table[%s]: %s' % (NT_analised,str(self.table[NT_analised])) 
+				production = self.table[NT_analised][terminal_input_analised].split('->')[1]
+				print ' %s' % ("".join(production).ljust(15))
+				del stack[0]
+
+				for p in splitProduction(production,self.NTs)[::-1]:
+					if p != self.__EMPTY__:
+						stack.insert(0,p)
+
+
+			NT_analised = stack[0]
+			terminal_input_analised = input_source[0]
+
+		print '%s %s %s' % (self.__SYMBOL_MARK.ljust(25),self.__SYMBOL_MARK.ljust(10),'ACCEPTED'.ljust(15))
+
+
+
+
+
 
 		
 
@@ -269,6 +314,7 @@ if "__main__":
 	D.printFirst()
 	D.printFollow()
 	D.buildTable()
-	D.printTable()
+	#D.printTable()
+	D.recognize(['a','b','*'])
 
 
