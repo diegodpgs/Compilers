@@ -1,4 +1,16 @@
 def splitProduction(production,noterminals):
+	"""
+		this algorithm recognize terminals only as lowercase.
+		If a term is uppercase and it is not a no terminal, them it will be considered as terminal.
+		However, if has more than two uppercase noterminal, the algo will use only as one
+
+		Example
+
+		NT = ['A','B','CD']
+		INPUT : splitProduction('AabCDdeFGh')
+		OUTPUT: ['A','ab','CD','deF','G','h']
+
+	"""
 	p = ['']
 	index = 0
 
@@ -21,3 +33,7 @@ def splitProduction(production,noterminals):
 
 
 	return p[1:]
+
+def _str_Production(NT,production):
+	return '%s -> %s' % (NT,str(production))
+

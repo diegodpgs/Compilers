@@ -2,7 +2,20 @@
 # -*- coding: utf-8 -*-
 from utils import *
 
+"""
+	This algorithm does not accept the following grammar 
+	A -> aB
+	B -> ab
 
+	It has to be converted to the grammar 
+	A -> aB 
+	B -> aC
+	C -> b
+
+	In other words, the algorithm does not work correclty in the case when
+	there is terminal subset of other terminals as the example above 'a' is a subset of 'ab'.
+	
+"""
 class Descendente:
 
 	def __init__(self,gramatica,initial,empty):
