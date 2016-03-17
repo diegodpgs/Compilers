@@ -37,3 +37,12 @@ def splitProduction(production,noterminals):
 def _str_Production(NT,production):
 	return '%s -> %s' % (NT,str(production))
 
+def termInProductions(productions,term):
+	term_production = []
+
+	for production in productions:
+		if term in production:
+			term_production.append(production)
+
+	return term_production
+

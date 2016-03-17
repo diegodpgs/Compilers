@@ -34,7 +34,7 @@ class Ascedente:
 
 	def extendGrammar(self):
 		self.__INITIAL__ = self.__INITIAL__+'"'
-		self.gramatica[self.__INITIAL__] = [self.__INITIAL__[0:-1]]
+		self.gramatica[self.__INITIAL__] = ['.'+self.__INITIAL__[0:-1]]
 
 	def setGramatica(self,gramatica,initial):
 		self.gramatica = gramatica
@@ -81,24 +81,102 @@ class Ascedente:
 				item = items[index_items]
 
 				item = splitProduction(item,self.NTs)
-				B = item[item.index('.')+1]
-				
-				
-				if B in self.NTs:
-					print 'log CLOSURE(%s) analysing the item: %s' % (str(I),str(item))
-					for production in self.gramatica[B]:
-						new_item = '.'+production
 
-						if new_item not in items:
-							print 'log CLOSURE(%s) item added: %s' % (str(I),new_item)
-							items.append(new_item)
-							item_added = True
+				if '.' not in item[-1]:
+					B = item[item.index('.')+1]
+					
+					
+					if B in self.NTs:
+						#print 'log CLOSURE(%s) analysing the item: %s' % (str(I),str(item))
+						for production in self.gramatica[B]:
+							new_item = '.'+production
+
+							if new_item not in items:
+								#print 'log CLOSURE(%s) item added: %s' % (str(I),new_item)
+								items.append(new_item)
+								item_added = True
 
 				index_items += 1
-			print 'log CLOSURE(%s)=%s' % (str(I),str(items))
+			#print 'log CLOSURE(%s)=%s' % (str(I),str(items))
 			return items
 
-	
+	def goto(self,I,term):
+		#print I,term
+		alfaDOTXs = termInProductions(I,'.'+term)
+		items = []
+		
+
+		if len(alfaDOTXs) == 0:
+			return []
+		
+		for production in alfaDOTXs:
+			production = splitProduction(production,self.NTs)
+			index_term = production.index('.')
+
+			#swith the point
+			production[index_term] = term
+			production[index_term+1] = '.'
+
+			alfaXDOT = "".join(production)
+			items.append(alfaXDOT)
+		#print items
+		return self.closure(items)
+
+	def buildAutomata(self):
+		C = self.closure(self.gramatica[self.__INITIAL__])
+		states ={'I0':C}
+		transitions = {}
+		states_read = [(C,'I0')]
+
+		while len(states_read) > 0:
+			C,actual_state = states_read.pop()
+			transitions[actual_state] = {}
+			print actual_state
+
+			for I in self.terms:
+				goto_i_x = self.goto(C,I)
+				next_state = 'I'+str(len(states.keys()))
+				
+
+				if len(goto_i_x) != 0:
+					#print 'goto(I0,%s)=%s => %s'  % (I,next_state,str(goto_i_x))
+					#print len(states.keys()),states_read
+					if goto_i_x not in states.values():
+						states[next_state]=goto_i_x
+						states_read.append((goto_i_x,next_state))
+
+
+						if I not in transitions[actual_state]:
+							transitions[actual_state][I] = next_state
+
+					else:
+						#WARNING, the following code may cause aunerism
+						for state,items in states.iteritems():
+							if goto_i_x == items:
+								transitions[actual_state][I] = state
+								break
+
+
+
+
+		print '\n\n\n'
+
+		for key,value in states.iteritems():
+			print key,value
+		
+		for state,values in transitions.iteritems():
+			print '--------',state
+			for key,value in values.iteritems():
+				print key,value
+		
+
+
+		
+
+
+
+
+
 
 
 
@@ -130,5 +208,9 @@ if "__main__":
 
 
 	D = Ascedente(g5,'E','empty')
-	D.closure(['.E'])
+	#print D.closure(['T*F.'])
+	#print D.goto(['T*.F'],'F')
+
+	D.buildAutomata()
+	#print D.goto(D.closure(['E.', 'E.+T']),'+')
 	
