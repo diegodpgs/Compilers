@@ -302,12 +302,12 @@ if "__main__":
 			'P':['(E)','a','b','ep']}
 
 
-	D = Descendente(g4,'E','empty')
+	D = Descendente(gramatica,'E','empty')
 	D.computFollow()
 	D.printFirst()
 	D.printFollow()
 	D.buildTable()
 	D.printTable()
-	D.recognize(['a','b','*'])
+	#D.recognize(['a','b','*'])
 
 
