@@ -1,8 +1,7 @@
 def splitProduction(production,noterminals):
 	"""
-		this algorithm recognize terminals only as lowercase.
-		If a term is uppercase and it is not a no terminal, them it will be considered as terminal.
-		However, if has more than two uppercase noterminal, the algo will use only as one
+		All noterminais have to be UPPERCASE 
+		all terminals   have to be lowercase
 
 		Example
 
@@ -11,28 +10,33 @@ def splitProduction(production,noterminals):
 		OUTPUT: ['A','ab','CD','deF','G','h']
 
 	"""
-	p = ['']
 	index = 0
+	production_splited = []
 
 	while index < len(production):
-		index2 = len(production)
 		
-		while index2 >= 0 and production[index:index2+1] not in noterminals:
-			index2 -= 1
+		buffer_production = ''
 
-		if index2 >= 0:
-			p.append(production[index:index2+1])
-			
-		elif production[index] not in p[-1]:
-			if p[-1].islower():
-				p[-1]+= production[index]
-			else:
-				p.append(production[index])
+		while index < len(production) and production[index].isupper():
+			buffer_production += production[index]
+			index += 1
 
-		index += 1
+		if len(buffer_production) > 0:
+			production_splited.append(buffer_production)
+			buffer_production = ''
 
+		while index < len(production) and production[index].islower():
+			buffer_production += production[index]
+			index += 1
 
-	return p[1:]
+		if len(buffer_production) > 0:
+			production_splited.append(buffer_production)
+
+		if buffer_production == '':
+			index += 1
+
+	return production_splited
+
 
 def _str_Production(NT,production):
 	return '%s -> %s' % (NT,str(production))
@@ -45,4 +49,8 @@ def termInProductions(productions,term):
 			term_production.append(production)
 
 	return term_production
+
+
+#print splitProduction('EMPTY',['A', 'B', 'C', 'F', 'G', 'F"'])
+
 

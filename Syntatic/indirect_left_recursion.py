@@ -1,4 +1,5 @@
 __EMPTY__ = '__EMPTY__'
+__ACTIVATED_LOG = False
 
 def isProductive(term,gramatica,NTs):
 	
@@ -7,42 +8,47 @@ def isProductive(term,gramatica,NTs):
 	#print term,not ''.join(gramatica[term]).islower(),
 	return not ''.join(gramatica[term]).islower()
 
-def replaceProductions(NTs,gramatica,productions):
+def replaceProductions(NTs,gramatica,productions_Ai):
 	"""
 	ex. productions -> ['Bxy','E'] 
 	"""
 	
 	gama = []
 	
-	if [d in NTs for d in ''.join(productions)].count(False)==len(''.join(productions)):
-		return productions
+	if [d in NTs for d in ''.join(productions_Ai)].count(False)==len(''.join(productions_Ai)):
+		return productions_Ai
 	
 	
-	print 'LOG..........Replacing..... Aj=%s->%s in Ai->%s' %(NTs[0],str(gramatica[NTs[0]]),str(productions))
-	for production in productions:
-		newterms = ['']
+	if __ACTIVATED_LOG:
+		print 'LOG..........Replacing..... Aj=%s->%s in Ai->%s' %(NTs[0],str(gramatica[NTs[0]]),str(productions_Ai))
+	
+
+	for production in productions_Ai:
+		production_modified = ['']
 		
 		for term in production:
 			
 			if isProductive(term,gramatica,NTs):
-				
-				while len(newterms) < len(gramatica[term]):
-					newterms.append(newterms[0])
+				print term
+				while len(production_modified) < len(gramatica[term]):
+					production_modified.append(production_modified[0])
+
+
 				for index in xrange(len(gramatica[term])):
 					if gramatica[term][index] == __EMPTY__:
-						newterms[index] = term
+						production_modified[index] = term
 					else:
-						newterms[index] += gramatica[term][index]
+						production_modified[index] += gramatica[term][index]
 			else:
-				for index in xrange(len(newterms)):
-			 		newterms[index]+= term
+				for index in xrange(len(production_modified)):
+			 		production_modified[index]+= term
 
-		gama.extend(newterms)
-	print 'LOG..........Ai After Replacing %s' % (str(gama))
+		gama.extend(production_modified)
+	
+	if __ACTIVATED_LOG:
+		print 'LOG..........Ai After Replacing %s' % (str(gama))
+	
 	return gama
-
-
-
 
 def isImediateRecursion(NT,productions):
 	for term in productions:
@@ -51,7 +57,10 @@ def isImediateRecursion(NT,productions):
 	return False
 
 def resolveLeft(NT,productions):
-	print 'LOG..........Solve left Recursion in {%s:%s}' % (NT,str(productions))
+	
+	if __ACTIVATED_LOG:
+		print 'LOG..........Solve left Recursion in {%s:%s}' % (NT,str(productions))
+	
 	newNT = NT+'"'
 	newproductions = {NT:[],newNT:[]}
 	alfas = []
@@ -68,8 +77,10 @@ def resolveLeft(NT,productions):
 	for a in alfas:
 		newproductions[newNT].append(a+newNT)
 	newproductions[newNT].append(__EMPTY__)
-	print 'LOG.........Grammar after Solve left Recursion'
-	print '            ',newproductions,'\n'
+	
+	if __ACTIVATED_LOG:
+		print 'LOG.........Grammar after Solve left Recursion'
+		print '            ',newproductions,'\n'
 	return newproductions
 
 def solve(gramatica):
@@ -80,7 +91,10 @@ def solve(gramatica):
 		Ai = NTs[i]
 		for j in xrange(i):
 			Aj = NTs[j]
-			print 'LOG..........I=%d,J=%d.....analiying Ai=%s->%s and Aj=%s->%s ' % (i+1,j+1,Aj,gramatica[Aj],Ai,gramatica[Ai])
+			
+			if __ACTIVATED_LOG:
+				print 'LOG..........I=%d,J=%d.....analiying Ai=%s->%s and Aj=%s->%s ' % (i+1,j+1,Aj,gramatica[Aj],Ai,gramatica[Ai])
+			
 			gramatica[Ai]=replaceProductions([Aj],gramatica,gramatica[Ai])
 
 		if isImediateRecursion(Ai,gramatica[Ai]):
@@ -125,30 +139,48 @@ def refactor_empty(gramatica):
 
 
 def test():
-	g1 = {'A':['B'],'B':['C'],'C':['D'],'D':['E'],'E':['Ea']}
-	Eg1 = {'A': ['B'], 'C': ['D'], 'B': ['C'], 'E': [], 'D': ['E'], 'E"': ['aE"',__EMPTY__]}
-	assert(assert_gramatica(solve(g1),Eg1))
+	# g1 = {'A':['B'],'B':['C'],'C':['D'],'D':['E'],'E':['Ea']}
+	# Eg1 = {'A': ['B'], 'C': ['D'], 'B': ['C'], 'E': [], 'D': ['E'], 'E"': ['aE"',__EMPTY__]}
+	# assert(assert_gramatica(solve(g1),Eg1))
 
-	g2 = {'A':['Ac','Sd','F'],'S':['Aa','b'],'F':[__EMPTY__]}
-	Eg2 = {'A': ['SdA"', 'FA"'], 'S"': ['dA"aS"', __EMPTY__], 'S': ['FA"aS"', 'bS"'], 'A"': ['cA"', __EMPTY__], 'F': [__EMPTY__]}
-	assert(assert_gramatica(solve(g2),Eg2))
+	# g2 = {'A':['Ac','Sd','F'],'S':['Aa','b'],'F':[__EMPTY__]}
+	# Eg2 = {'A': ['SdA"', 'FA"'], 'S"': ['dA"aS"', __EMPTY__], 'S': ['FA"aS"', 'bS"'], 'A"': ['cA"', __EMPTY__], 'F': [__EMPTY__]}
+	# assert(assert_gramatica(solve(g2),Eg2))
 
-	g3 = {'A':['Ac','Sd',__EMPTY__],'S':['Aa','b']}
-	Eg3 = {'A': ['SdA"', '__EMPTY__A"'], 'S"': ['dA"aS"', '__EMPTY__'], 'S': ['__EMPTY__A"aS"', 'bS"'], 'A"': ['cA"', '__EMPTY__']}
+	# g3 = {'A':['Ac','Sd',__EMPTY__],'S':['Aa','b']}
+	# Eg3 = {'A': ['SdA"', '__EMPTY__A"'], 'S"': ['dA"aS"', '__EMPTY__'], 'S': ['__EMPTY__A"aS"', 'bS"'], 'A"': ['cA"', '__EMPTY__']}
 
 	
-	g3solved = solve(g3)
-	refactor_empty(g3solved)
-	refactor_empty(g3)
+	# g3solved = solve(g3)
+	# refactor_empty(g3solved)
+	# refactor_empty(g3)
 
-	assert(assert_gramatica(g3solved,g3))
+	# assert(assert_gramatica(g3solved,g3))
+
+
+	# g4 = {'A':['Bb'],'B':['a'],'C':['Ac']}
+	# Eg4 = {'A':['Ba'],'B':['b'],'C':['bac']}
+
+	# assert(assert_gramatica(solve(g4),Eg4))
+
+	g5 = {'A':['Ba','Db','a','__EMPTY__'],'B':['D','Ga'],'C':['Ac'],'D':['A','B'],'F':['FD','g'],'G':['AaF','__EMPTY__']}
+	print solve(g5)
+
 	
 
 
 
 if "__main__":
+	__ACTIVATED_LOG = True
 	test()
-	#print solve({'A':['BEy','E'],'B':['CD'],'C':['A','c'],'D':['d'],'E':['x']})
-	# solve({'S':['Aa','b'],'A':['Ac','Sd','vazio']})
-	# solve({'A':['B'],'B':['C'],'C':['D'],'D':['E'],'E':['Ea']})
+	gramatica = {'A':['Ba'],'B':['b'],'C':['Ac']}
+	print solve(gramatica)
+
+
+
+
+
+
+
+
 	
