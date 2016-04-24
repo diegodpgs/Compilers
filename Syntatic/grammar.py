@@ -7,6 +7,8 @@ class Grammar:
 		self.EMPTY = EMPTY
 		self.__ACTIVATED_LOG__ = ACTIVATED_LOG
 		self.NTs = self.grammar.keys()
+		self.isEncoded = False
+		self.mapDecode = {}
 
 
 	#A derive B that derive C
@@ -103,7 +105,7 @@ class Grammar:
 		
 		return False
 
-	#OK
+	
 	def resolveLeft(self,NT,productions):
 		
 		if self.__ACTIVATED_LOG__:
@@ -153,7 +155,7 @@ class Grammar:
 			self.grammar[NT] = productions.split(',')
 				
 
-		self.grammar[empty_NT] = self.EMPTY
+		self.grammar[empty_NT] = [self.EMPTY]
 
 	def solve(self):
 		
@@ -182,73 +184,70 @@ class Grammar:
 				for key,value in ypson.iteritems():
 					self.grammar[key]=ypson[key]
 			
-
-			
-
 	def setGrammar(self,grammar):
 		self.grammar = grammar
 		self.NTs = grammar.keys()
+
+	def encode(self):
+		"""
+			encode all the symbols into 3 letters, uppercase for NT en lowercase for terminals
+			example:
+				grammar = {'A':['table','car','tree'],'MY':['name','stuffs','house']}
+				encodeGrammar(grammar) -> {'AAA':['aab','aac','aad'],'AAE':['aaf','aag','aah']}
+		"""
+
+		if self.isEncoded:
+			raise Exception('This grammar is already encoded')
+
+		index_terms = 0
+		grammarEncoded = {}
+		NTs_grammar = self.grammar.keys()
+		NTs_grammar.sort()
+
+		for NT in NTs_grammar:
+			index_terms += 1
+			newNT = generateTerm(index_terms)
+			grammarEncoded[newNT] = []
+			self.mapDecode[newNT] = NT
+
+			for p in self.grammar[NT]:
+				index_terms += 1
+				newTerminal = generateTerm(index_terms).lower()
+				grammarEncoded[newNT].append(newTerminal)
+				self.mapDecode[newTerminal] = p
+
+
+		self.grammar = grammarEncoded
+		self.isEncoded = True
+
+	def decode(self):
+		grammarDecoded = {}
+
+		print self.mapDecode
+
+		if not self.isEncoded:
+			raise Exception('This grammar is not encoded')
+
+		for NT, productions in self.grammar.iteritems():
+			grammarDecoded[self.mapDecode[NT]] = []
+
+			for p in productions:
+				grammarDecoded[self.mapDecode[NT]].append(self.mapDecode[p])
+
+		self.grammar = grammarDecoded
+
 	
 	def __eq__(self,obj):
 		g1 = zip(self.grammar.keys(),self.grammar.values())
 		g1.sort()
 		g2 = zip(obj.grammar.keys(),obj.grammar.values())
 		g2.sort() 
-
 		
 		return str(g1)==str(g2)
 
-
-def test():
-
-	g1 = Grammar({'A':['B'],'B':['C'],'C':['D'],'D':['E'],'E':['Ea']})
-	Eg1 = Grammar({'A': ['B'], 'C': ['D'], 'B': ['C'], 'E': [], 'D': ['E'], 'E"': ['aE"','EMPTY']})
-	g1.solve()
-	assert(g1 == Eg1)
-	print 'Test1 [OK]:    Grammar %s' % str({'A':['B'],'B':['C'],'C':['D'],'D':['E'],'E':['Ea']})
-
-	g2 = Grammar({'A':['Ac','Sd','F'],'S':['Aa','b'],'F':['EMPTY']})
-	Eg2 = Grammar({'A': ['SdA"', 'FA"'], 'S"': ['dA"aS"', 'EMPTY'], 'S': ['FA"aS"', 'bS"'], 'A"': ['cA"', 'EMPTY'], 'F': ['EMPTY']})
-	g2.solve()
-	assert(g2 == Eg2)
-	print 'Test2 [OK]:    Grammar %s' % str({'A':['Ac','Sd','F'],'S':['Aa','b'],'F':['EMPTY']})
-
-	g3 = Grammar({'A':['Ac','Sd','EMPTY'],'S':['Aa','b']})
-	Eg3 = Grammar({'A': ['SdA"', 'EMPTYA"'], 'S"': ['dA"aS"', 'EMPTY'], 'S': ['EMPTYA"aS"', 'bS"'], 'A"': ['cA"', 'EMPTY']})
-	g3.solve()
-	g3.refactor_empty()
-	Eg3.refactor_empty()
-	assert(g3 == Eg3)
-	print 'Test3 [OK]:    Grammar %s' % str({'A':['Ac','Sd','EMPTY'],'S':['Aa','b']})
- 
-
-	g4 = Grammar({'A':['Bb'],'B':['a'],'C':['Ac']})
-	Eg4 = Grammar({'A':['Bb'],'B':['a'],'C':['abc']})
-	g4.solve()
-	assert(g4==Eg4)
-	print 'Test4 [OK]:    Grammar %s' % str({'A':['Bb'],'B':['a'],'C':['Ac']})
-	
-	g5 = Grammar({'A':['Ba','cb','a','EMPTY'],'B':['a','Ga'],'C':['Ac'],'F':['Fb','g'],'G':['AaF','EMPTY']})
-	Eg5 = Grammar({'A': ['Ba', 'cb', 'a', 'H'], 'C': ['aac', 'Gaac', 'cbc', 'ac', 'Hc'], 'B': ['a', 'Ga'], 'G': ['aaagF"G"', 'cbagF"G"', 'aagF"G"', 'HagF"G"', 'HG"'], 'F': ['gF"'], 'H': 'EMPTY', 'F"': ['bF"', 'EMPTY'], 'G"': ['aaagF"G"', 'EMPTY']})
-	g5.refactor_empty()
-	g5.solve()
-	assert(g5==Eg5)
-	print 'Test5 [OK]:    Grammar %s' % str({'A':['Ba','cb','a','EMPTY'],'B':['a','Ga'],'C':['Ac'],'F':['Fb','g'],'G':['AaF','EMPTY']})
-	
-	
-	g5 = Grammar({'A':['Ba','Db','a','EMPTY'],'B':['D','Ga'],'C':['Ac'],'D':['A','B'],'F':['FD','g'],'G':['AaF','EMPTY']})
-	Eg5 = Grammar({'A': ['Ba', 'Db', 'a', 'EMPTY'], 'C': ['Dac', 'Gaac', 'Dbc', 'ac', 'Ac'], 'B': ['D', 'Ga'], 'D': ['GaaD"', 'aD"', 'AD"', 'GaD"'], 'G': ['aDaagF"G"', 'ADaagF"G"', 'aDbagF"G"', 'ADbagF"G"', 'aagF"G"', 'AagF"G"', 'EG"', 'MG"', 'PG"', 'TG"', 'YG"'], 'F': ['gF"'], 'D"': ['aD"', 'bD"', 'D"', 'EMPTY'], 'F"': ['DF"', 'EMPTY'], 'G"': ['aaDaagF"G"', 'aDaagF"G"', 'aaagF"G"', 'aaDbagF"G"', 'aDbagF"G"', 'EMPTY']})
-	g5.solve()
-	assert(g5==Eg5)
-	print 'Test6 [OK]:    Grammar %s' % str({'A':['Ba','Db','a','EMPTY'],'B':['D','Ga'],'C':['Ac'],'D':['A','B'],'F':['FD','g'],'G':['AaF','EMPTY']})
-	
-if "__main__":
-	test()
-	# gramatica = {'A':['Ba'],'B':['b'],'C':['Ac']}
-	# print solve(gramatica)
-
-
-
+	def __str__(self):
+		st = str(self.grammar)
+		return st.replace("'","")
 
 
 

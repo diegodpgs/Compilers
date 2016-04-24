@@ -1,3 +1,7 @@
+import random
+import nltk
+
+
 def splitProduction(production,noterminals):
 	"""
 		All noterminais have to be UPPERCASE 
@@ -51,6 +55,22 @@ def termInProductions(productions,term):
 	return term_production
 
 
-#print splitProduction('EMPTY',['A', 'B', 'C', 'F', 'G', 'F"'])
+def generateTerm(number):
 
+	if number < 25:
+		return 'AA'+chr(number + 64)
+
+	first = number/676
+	second = (number % 676) / 26
+	third  = (number % 676) % 26
+
+	return chr(first+65)+chr(second+65)+chr(third+65)
+
+def alf(word):
+	w = 'abcdefghijklmnopqrstuvxz'
+
+	for l in word:
+		if l not in w:
+			return False
+	return True
 
